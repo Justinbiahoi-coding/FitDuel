@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+
+# Flutter / Dart
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/build/
+app/ios/Flutter/.last_build_id
+app/*.iml
+app/*.ipr
+app/*.iws
+
+# Android
+app/android/**/gradle-wrapper.jar
+app/android/.gradle
+app/android/captures/
+app/android/gradlew
+app/android/gradlew.bat
+app/android/local.properties
+app/android/**/GeneratedPluginRegistrant.java
+app/android/key.properties
+app/**/*.keystore
+app/**/*.jks
+
+# iOS
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+
+# Firebase - KHÔNG commit file cấu hình chứa khóa thật
+app/android/app/google-services.json
+app/ios/Runner/GoogleService-Info.plist
+app/lib/firebase_options.dart
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
