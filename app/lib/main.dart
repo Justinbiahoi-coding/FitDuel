@@ -85,9 +85,18 @@ class _PoseTestScreenState extends State<PoseTestScreen> {
       final elbow = pose.landmarks[PoseLandmarkType.leftElbow];
       final wrist = pose.landmarks[PoseLandmarkType.leftWrist];
 
-      if (shoulder == null || elbow == null || wrist == null) {
+      final hopLe = shoulder != null &&
+          elbow != null &&
+          wrist != null &&
+          duTinCay(shoulder.likelihood, elbow.likelihood, wrist.likelihood);
+
+      if (!hopLe) {
         setState(() => _debugText =
-            'Không thấy đủ vai/khuỷu tay/cổ tay bên trái.\nThử xoay người hoặc chỉnh camera.');
+            'Chưa thấy đủ rõ vai/khuỷu tay/cổ tay bên trái.\n'
+            'Lùi camera ra để thấy trọn cánh tay, không chỉ mặt.\n'
+            '(độ tin cậy: vai ${shoulder?.likelihood.toStringAsFixed(2) ?? "-"}, '
+            'khuỷu ${elbow?.likelihood.toStringAsFixed(2) ?? "-"}, '
+            'cổ tay ${wrist?.likelihood.toStringAsFixed(2) ?? "-"})');
         return;
       }
 
@@ -103,7 +112,10 @@ class _PoseTestScreenState extends State<PoseTestScreen> {
             'Khuỷu:   (${elbow.x.toStringAsFixed(0)}, ${elbow.y.toStringAsFixed(0)})\n'
             'Cổ tay:  (${wrist.x.toStringAsFixed(0)}, ${wrist.y.toStringAsFixed(0)})\n'
             'Góc khuỷu tay: ${goc.toStringAsFixed(1)}°\n'
-            'Độ cao (0-1): ${doCao.toStringAsFixed(2)}';
+            'Độ cao (0-1): ${doCao.toStringAsFixed(2)}\n'
+            'Độ tin cậy: vai ${shoulder.likelihood.toStringAsFixed(2)}, '
+            'khuỷu ${elbow.likelihood.toStringAsFixed(2)}, '
+            'cổ tay ${wrist.likelihood.toStringAsFixed(2)}';
       });
     } catch (e) {
       setState(() => _debugText = 'Lỗi: $e');
