@@ -8,7 +8,15 @@ Tập thể dục một mình (hít đất, squat, plank) dễ bị bỏ cuộc 
 
 ## Trạng thái dự án
 
-🚧 Đang ở giai đoạn lập kế hoạch — xem tài liệu trong [`docs/`](docs/). Mã nguồn ứng dụng sẽ được phát triển trong [`app/`](app/).
+🚧 Đang phát triển — xem tiến độ chi tiết tại [`docs/Gantt_FitDuel_chi_tiet.xlsx`](docs/Gantt_FitDuel_chi_tiet.xlsx).
+
+- [x] Môi trường dev (Flutter, Android SDK, emulator) + scaffold project
+- [x] Camera + ML Kit pose detection chạy được, có lọc độ tin cậy (likelihood)
+- [x] Cấu trúc code feature-first + README chi tiết từng thư mục (xem [`app/lib/README.md`](app/lib/README.md))
+- [ ] Hiệu chỉnh ngưỡng góc theo chuyển động thật (đang làm)
+- [ ] Mini-game, ghép trận, đồng bộ Firebase, màn hình chia đôi
+
+Mã nguồn ứng dụng nằm trong [`app/`](app/).
 
 ## Thành viên nhóm
 
@@ -24,7 +32,7 @@ Tập thể dục một mình (hít đất, squat, plank) dễ bị bỏ cuộc 
 
 - [ ] Đăng ký/Đăng nhập tài khoản
 - [ ] Ghép trận trực tuyến 1-1
-- [ ] Nhận diện tư thế qua camera theo thời gian thực (hít đất)
+- [x] Nhận diện tư thế qua camera theo thời gian thực (hít đất) — hoạt động, đang hiệu chỉnh ngưỡng
 - [ ] Mini-game điều khiển bằng chuyển động cơ thể
 - [ ] Đồng bộ trạng thái trận đấu giữa 2 người chơi (Firebase Realtime Database)
 - [ ] Màn hình chia đôi: xem game của mình và của đối thủ
@@ -44,16 +52,25 @@ Chi tiết đầy đủ (phạm vi, kiến trúc, nâng cao, rủi ro): xem [`do
 
 ```
 FitDuel/
-├── app/        # Mã nguồn ứng dụng Flutter (sẽ thêm khi bắt đầu code)
-├── docs/       # Đề cương, đề xuất dự án, sơ đồ Gantt
-└── .github/    # Issue/PR template, CI (sẽ thêm khi có code)
+├── app/                              # Mã nguồn ứng dụng Flutter
+│   └── lib/
+│       ├── README.md                 # Tổng quan cấu trúc mã nguồn
+│       ├── core/                     # Logic thuần, test được không cần thiết bị thật
+│       └── features/                 # Mỗi tính năng 1 thư mục riêng (feature-first)
+├── docs/                             # Đề cương, đề xuất dự án, sơ đồ Gantt, spec kỹ thuật
+└── .github/                          # Issue/PR template, CI (sẽ thêm khi cần)
 ```
+
+Quy ước bắt buộc cho cấu trúc code và tài liệu: xem mục *"Quy ước cấu trúc thư mục & tài liệu"* trong [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Tài liệu
 
 - [Đề xuất dự án (1 trang)](docs/De_xuat_du_an_1_trang.pdf)
 - [Đề cương chi tiết (SRS sơ bộ)](docs/De_cuong_du_an_FitDuel.docx)
 - [Sơ đồ Gantt (Excel, có biểu đồ)](docs/Gantt_FitDuel_chi_tiet.xlsx)
+- [Spec công thức đo độ sâu chuyển động](docs/pose_estimation_spec.md)
+- [Spec cơ chế mini-game](docs/game_mechanics_spec.md)
+- [Spec schema dữ liệu Firebase](docs/firebase_schema.md)
 
 ## Đóng góp
 
