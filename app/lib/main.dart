@@ -1,121 +1,178 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-void main() {
-  runApp(const MyApp());
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
+
+import 'pose_math.dart';
+
+late List<CameraDescription> _cameras;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  _cameras = await availableCameras();
+  runApp(const FitDuelApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FitDuelApp extends StatelessWidget {
+  const FitDuelApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'FitDuel',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(colorSchemeSeed: Colors.deepOrange, useMaterial3: true),
+      home: const PoseTestScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+/// Bước 2: màn hình chứng minh pipeline camera -> pose estimation -> công
+/// thức góc khuỷu tay (xem docs/pose_estimation_spec.md). Chưa có game.
+class PoseTestScreen extends StatefulWidget {
+  const PoseTestScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<PoseTestScreen> createState() => _PoseTestScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _PoseTestScreenState extends State<PoseTestScreen> {
+  CameraController? _controller;
+  final PoseDetector _poseDetector = PoseDetector(options: PoseDetectorOptions());
+  bool _isDetecting = false;
+  String _debugText = 'Đang khởi động camera...';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    final camera = _cameras.firstWhere(
+      (c) => c.lensDirection == CameraLensDirection.back,
+      orElse: () => _cameras.first,
+    );
+    final controller = CameraController(
+      camera,
+      ResolutionPreset.medium,
+      enableAudio: false,
+      imageFormatGroup:
+          Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+    );
+    await controller.initialize();
+    if (!mounted) return;
+    setState(() => _controller = controller);
+    await controller.startImageStream(_processImage);
+  }
+
+  void _processImage(CameraImage image) async {
+    if (_isDetecting) return;
+    _isDetecting = true;
+    try {
+      final inputImage = _buildInputImage(image);
+      if (inputImage == null) return;
+
+      final poses = await _poseDetector.processImage(inputImage);
+      if (poses.isEmpty) {
+        setState(() => _debugText = 'Không phát hiện người trong khung hình.');
+        return;
+      }
+
+      final pose = poses.first;
+      final shoulder = pose.landmarks[PoseLandmarkType.leftShoulder];
+      final elbow = pose.landmarks[PoseLandmarkType.leftElbow];
+      final wrist = pose.landmarks[PoseLandmarkType.leftWrist];
+
+      if (shoulder == null || elbow == null || wrist == null) {
+        setState(() => _debugText =
+            'Không thấy đủ vai/khuỷu tay/cổ tay bên trái.\nThử xoay người hoặc chỉnh camera.');
+        return;
+      }
+
+      final goc = angleAtElbow(
+        Point2D(shoulder.x, shoulder.y),
+        Point2D(elbow.x, elbow.y),
+        Point2D(wrist.x, wrist.y),
+      );
+      final doCao = depthFromAngle(goc);
+
+      setState(() {
+        _debugText = 'Vai:     (${shoulder.x.toStringAsFixed(0)}, ${shoulder.y.toStringAsFixed(0)})\n'
+            'Khuỷu:   (${elbow.x.toStringAsFixed(0)}, ${elbow.y.toStringAsFixed(0)})\n'
+            'Cổ tay:  (${wrist.x.toStringAsFixed(0)}, ${wrist.y.toStringAsFixed(0)})\n'
+            'Góc khuỷu tay: ${goc.toStringAsFixed(1)}°\n'
+            'Độ cao (0-1): ${doCao.toStringAsFixed(2)}';
+      });
+    } catch (e) {
+      setState(() => _debugText = 'Lỗi: $e');
+    } finally {
+      _isDetecting = false;
+    }
+  }
+
+  InputImage? _buildInputImage(CameraImage image) {
+    final camera = _controller!.description;
+    final rotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation);
+    if (rotation == null) return null;
+
+    final format = InputImageFormatValue.fromRawValue(image.format.raw);
+    if (format == null) return null;
+
+    if (image.planes.length != 1) return null;
+    final plane = image.planes.first;
+
+    return InputImage.fromBytes(
+      bytes: plane.bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: rotation,
+        format: format,
+        bytesPerRow: plane.bytesPerRow,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _poseDetector.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      appBar: AppBar(title: const Text('FitDuel — Test Pose Estimation')),
+      body: Stack(
+        children: [
+          CameraPreview(controller),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _debugText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontFamily: 'monospace',
+                ),
+              ),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }
