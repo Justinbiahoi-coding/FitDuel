@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fitduel/pose_math.dart';
+import 'package:fitduel/core/pose_math.dart';
 
 void main() {
   group('angleAtElbow', () {
