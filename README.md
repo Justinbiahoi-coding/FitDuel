@@ -26,7 +26,7 @@ Mã nguồn ứng dụng nằm trong [`app/`](app/).
 | 2   | Nguyễn Đức Duy Tân | Mini-game | 24120135 | 24120135@student.hcmus.edu.vn |
 | 3   | Bùi Văn Thiên | Backend & đồng bộ | 24120138 | 24120138@student.hcmus.edu.vn |
 | 4   | Nguyễn Lê Anh Tuấn | Giao diện | 24120153 | 24120153@student.hcmus.edu.vn |
-| 5   | Cáp Hữu Duy | Kiểm thử & tài liệu | 24120177 | 24120177@student.hcmus.edu.vn |
+| 5   | Cáp Hửu Duy | Kiểm thử & tài liệu | 24120177 | 24120177@student.hcmus.edu.vn |
 
 ## Tính năng chính (MVP)
 
