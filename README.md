@@ -13,7 +13,7 @@ Tập thể dục một mình (hít đất, squat, plank) dễ bị bỏ cuộc 
 - [x] Môi trường dev (Flutter, Android SDK, emulator) + scaffold project
 - [x] Camera + ML Kit pose detection chạy được, có lọc độ tin cậy (likelihood)
 - [x] Cấu trúc code feature-first + README chi tiết từng thư mục (xem [`app/lib/README.md`](app/lib/README.md))
-- [ ] Hiệu chỉnh ngưỡng góc theo chuyển động thật (đang làm)
+- [x] Hiệu chỉnh ngưỡng góc theo chuyển động thật (78°–176°, quay side-view)
 - [ ] Mini-game, ghép trận, đồng bộ Firebase, màn hình chia đôi
 
 Mã nguồn ứng dụng nằm trong [`app/`](app/).

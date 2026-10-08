@@ -54,7 +54,15 @@ Luồng xử lý từng bước, theo đúng thứ tự trong file:
 ## Hạn chế đã biết (sẽ xử lý ở bước sau, không phải quên)
 
 - Ngưỡng góc (`gocMinHitDatSau`, `gocMaxTayDuoi` trong `core/pose_math.dart`)
-  là số khởi điểm, chưa hiệu chỉnh theo người dùng thật.
+  đã hiệu chỉnh bằng video thật ở Bước 3 (78°/176°) — xem ghi chú trong
+  chính file đó. Chỉ hiệu chỉnh với 1 người/1 vóc dáng, có thể cần tinh
+  chỉnh thêm khi test với các thành viên khác.
+- **Bài học về cách đặt camera (rút ra từ Bước 3):** quay thẳng mặt vào
+  camera dễ làm cổ tay bị che khuất/ra khỏi khung hình lúc hạ thấp người,
+  khiến `duTinCay()` từ chối đúng lúc cần đo nhất. Quay **nghiêng
+  (side-view)**, camera cách ~1,5-2m ngang tầm vai, giữ được độ tin cậy
+  0.90-1.00 suốt cả nhịp tập — nên hướng dẫn người dùng đặt máy kiểu này
+  trong màn hình hướng dẫn trước trận (F10 trong Vision Document).
 - Chỉ test bằng tay trái, chưa xử lý trường hợp tay trái bị che khuất nhưng
   tay phải thấy rõ.
 - UI hiện tại chỉ hiện chữ debug, chưa có giao diện đẹp (không phải mục tiêu

@@ -43,10 +43,13 @@ bool duTinCay(
       wristLikelihood >= nguong;
 }
 
-/// Ngưỡng khởi điểm theo docs/pose_estimation_spec.md — cần hiệu chỉnh lại
-/// bằng cách tự quay thử nhiều lần ở Bước 3.
-const double gocMinHitDatSau = 70.0; // hít đất sâu -> độ cao = 0
-const double gocMaxTayDuoi = 170.0; // tay duỗi thẳng -> độ cao = 1
+/// Ngưỡng đã hiệu chỉnh ở Bước 3 bằng video thật (quay nghiêng/side-view,
+/// camera cách ~1,5-2m ngang vai, độ tin cậy đo được 0.90-1.00 suốt cả
+/// nhịp tập — xem docs/pose_estimation_spec.md để biết công thức gốc).
+/// Số gốc trước khi hiệu chỉnh là 70°/170° (chỉ là ước đoán, chưa có
+/// video thật) — giữ lại trong lịch sử commit, không phải số dùng thật.
+const double gocMinHitDatSau = 78.0; // gập sâu nhất đo được: 77.9° -> độ cao = 0
+const double gocMaxTayDuoi = 176.0; // duỗi thẳng lúc đang tập: 172.8-178.1° -> độ cao = 1
 
 /// Chuẩn hóa góc khuỷu tay thành giá trị điều khiển 0-1.
 double depthFromAngle(
