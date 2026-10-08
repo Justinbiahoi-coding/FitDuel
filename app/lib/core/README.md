@@ -32,10 +32,15 @@ estimation. Xem `docs/pose_estimation_spec.md` ở gốc repo để biết bối
   nếu ML Kit trả về 2 điểm trùng nhau).
 
 - **`gocMinHitDatSau` / `gocMaxTayDuoi`** — 2 hằng số ngưỡng góc: dưới
-  `gocMinHitDatSau` (mặc định 70°) coi là "hít đất sâu nhất", trên
-  `gocMaxTayDuoi` (mặc định 170°) coi là "tay duỗi thẳng nhất". **Đây là số
-  cần hiệu chỉnh lại bằng cách tự test nhiều lần** (Bước 3 trong kế hoạch),
-  không phải số cố định đúng cho mọi người.
+  `gocMinHitDatSau` (90°) coi là "hít đất sâu nhất", trên `gocMaxTayDuoi`
+  (160°) coi là "tay duỗi thẳng nhất". Số này lấy từ đối chiếu nghiên cứu CV
+  về đếm hít đất (Baek et al. IEEE CASE 2020, Suraju et al. 2025 — xem đầy đủ
+  nguồn ở `docs/pose_estimation_spec.md`), **không phải số tự đoán**.
+  **Vẫn chỉ là ngưỡng chung tạm dùng, không phải ngưỡng cá nhân hoá** — không
+  chuẩn thể lực chính thức nào (quân đội, ACSM) dùng 1 số độ cố định cho mọi
+  người, vì tỉ lệ tay/thân khác nhau cho góc khác nhau ở cùng 1 độ sâu thật.
+  Khi code tính năng F10 (hướng dẫn chuẩn bị trước trận), bắt buộc thêm bước
+  hiệu chỉnh riêng từng người bằng vài rep mẫu — xem spec để biết chi tiết.
 
 - **`depthFromAngle(goc, {gocMin, gocMax})`** — Chuẩn hóa góc thành giá trị
   điều khiển 0-1 (dùng công thức nội suy tuyến tính, kẹp trong khoảng [0,1]

@@ -43,13 +43,28 @@ bool duTinCay(
       wristLikelihood >= nguong;
 }
 
-/// Ngưỡng đã hiệu chỉnh ở Bước 3 bằng video thật (quay nghiêng/side-view,
-/// camera cách ~1,5-2m ngang vai, độ tin cậy đo được 0.90-1.00 suốt cả
-/// nhịp tập — xem docs/pose_estimation_spec.md để biết công thức gốc).
-/// Số gốc trước khi hiệu chỉnh là 70°/170° (chỉ là ước đoán, chưa có
-/// video thật) — giữ lại trong lịch sử commit, không phải số dùng thật.
-const double gocMinHitDatSau = 78.0; // gập sâu nhất đo được: 77.9° -> độ cao = 0
-const double gocMaxTayDuoi = 176.0; // duỗi thẳng lúc đang tập: 172.8-178.1° -> độ cao = 1
+/// Ngưỡng mặc định — dựa trên nghiên cứu computer vision về đếm hít đất
+/// (Baek et al., IEEE CASE 2020: đáy <90°, rep chuẩn đo 50-70°, đỉnh >150°;
+/// Suraju et al. 2025: đáy <90-95°, đỉnh >160°), KHÔNG phải số tự đoán.
+/// Xem docs/pose_estimation_spec.md mục "Nghiên cứu đối chiếu" để biết đầy
+/// đủ nguồn và lý do.
+///
+/// Lưu ý quan trọng: đây là ngưỡng CHUNG tạm dùng cho mọi người, không phải
+/// ngưỡng cá nhân hoá. Không có chuẩn khoa học/quân đội nào dùng 1 số độ cố
+/// định cho mọi người — họ đều dùng mốc vật lý (ngực chạm sàn) vì tỉ lệ
+/// tay/thân khác nhau cho góc khuỷu khác nhau ở cùng 1 độ sâu thật, và sai
+/// số đo của ML Kit (~12-16°) còn lớn hơn khoảng cách giữa các ngưỡng "hợp
+/// lý" khác nhau. Khi code tính năng F10 "Hướng dẫn chuẩn bị trước trận"
+/// (xem Vision Document), BẮT BUỘC thêm bước hiệu chỉnh riêng từng người
+/// (2-3 rep mẫu lúc vào trận, tính ngưỡng theo % biên độ chuyển động của
+/// chính người đó) — hai số dưới đây chỉ là giá trị dự phòng khi chưa hiệu
+/// chỉnh, không phải số cuối cùng dùng trong sản phẩm thật.
+///
+/// Số đo thực tế của 1 thành viên nhóm (Bước 3, quay side-view): 77.9°/
+/// 172.8-178.1° — nằm trong khoảng hợp lý so với nghiên cứu trên, nhưng
+/// mẫu n=1 nên không dùng làm chuẩn chung được.
+const double gocMinHitDatSau = 90.0; // đáy -> độ cao = 0
+const double gocMaxTayDuoi = 160.0; // đỉnh -> độ cao = 1
 
 /// Chuẩn hóa góc khuỷu tay thành giá trị điều khiển 0-1.
 double depthFromAngle(
